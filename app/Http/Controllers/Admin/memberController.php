@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class memberController extends Controller
 {
     //
-    public function store()
+    public function store(Request $request)
     {
 
         /*$db_insert = DB::table('member')->insert([
@@ -41,13 +41,29 @@ class memberController extends Controller
         dd($insert_id);*/
 
 
-        $ins = DB::insert('insert into member (name, age, email) values ("haohao",19,"haohao@gmail.com")');
+        //$ins = DB::insert('insert into member (name, age, email) values ("haohao",19,"haohao@gmail.com")');
 
-        dd($ins);
+        //dd($ins);
+        $member = $request->all();
+        //$member['age']= 20;
+        //$member['email']= 'email@id.com';
+        //$mem = (new Member())->fill($member)->save();
+
+        $m = Member::query()->create($member);
+        //$m = Member::query()->insert($member);
+
+
+        dd($m);
     }
 
-    public function update()
+    public function update(Request $request)
     {
+
+        $this->validate($request,[
+            'name' => 'required|min:3|unique:member,name,'.$request->post('id').',id',
+            'email'=>'required|email',
+            'age' =>'required|integer'
+        ]);
         //$id = DB::table('member')->where('id',9)->update(['age'=>55]);
 
          //$sql = DB::table('member')->where('id','>',5)->get()->toArray();
@@ -56,8 +72,38 @@ class memberController extends Controller
             //$sql = DB::table('member')->where('id','=',8)->increment('age');
             //$sql = DB::table('member')->where('id','=',8)->decrement('age',3);
 
-            $up = DB::update('update member set age=37 where id =9');
-        dd($up);
+           /* $up = DB::update('update member set age=37 where id =9');
+        dd($up);*/
+        if($request->post('id')){
+
+            $member = Member::find($request->post('id'));
+
+            $member->age = $request->post('age');
+            $member->email = $request->post('email');
+            $member->name = $request->post('name');
+            //$res = $member->update($request->toArray());  or
+            //$request->hasFile('photo');//是否上传
+            //$request->file('photo')->isValid()//是否上传成功
+            if($file =$request->file('photo')){
+               $file_name = $file->getClientOriginalExtension();
+               $filename = time().uniqid().'.'.$file_name;
+               $file->move('./uploads/',$filename);
+               $member->face = '/uploads/'.$filename;
+            }
+
+
+            $res = $member->save();
+            //$res = Member::query()->create($member);
+
+            //index get, user get show ,user post store,user/id delete,user/id/edit get,user/id put
+
+            if($res){
+                return redirect('admin/member/index')->with('msg','保存成功');
+            }else{
+                return redirect('admin/member/'.$request->get('id').'/edit');
+            }
+        }
+
     }
 
     public function index()
@@ -106,31 +152,67 @@ class memberController extends Controller
         $member->save();*/
 
 
-        $mm = Member::query()->insert();
+        //$mm = Member::query()->insert();
 
 
-        $member = Member::query()->create();
+        //$member = Member::query()->create();
 
+/*
+        $member = new Member();
+        $member->name ='member1';
+        $member->email ='member1@example.com';
+        $member->age =28;
+        $member->save();*/
+
+        //$member = Member::query()->find(5);
+        //$member = Member::query()->where('id','>=',5)->value('name');
+        //$member = Member::query()->where('id','>=',5)->select('name','age);
+        //$member = Member::query()->where('id','>=',5)->first();
+        //$member = Member::query()->all();
+        //$member = Member::all();
+        //$members = Member::query()->where('id','>=',2)->get(['name','age','email','id']);
+
+        //$members = Member::query()->where('id','>=',2)->orderBy('age','desc')->get();
+        //$members = Member::query()->where('id','>=',2)->orderBy('age','desc')->skip(2)->limit(1)->get();
+        //$members = Member::query()->offset(10)->limit(3)->get();
+
+
+        //$members = Member::query()->count();
+        //$members = Member::query()->sum('id');
+        //$members = Member::query()->max('id');
+
+        $members = Member::query()->where('id','>=',2)->paginate(3);
+
+
+        //$data = Member::query()->paginate(3);
 
 
         //dd($members);
-        echo '<pre>';
-           // var_dump($members);
-        echo '</pre>';
+
+       return view('admin.index',compact('members'));
     }
 
-    public function destory()
+    public function destory($id)
     {
-        $del = DB::table('member')->where('id', '=', 3)->delete();
+       /* $del = DB::table('member')->where('id', '=', 3)->delete();
 
         //dd($del);
 
         $ddl = DB::statement('delete from member where id = 4');
 
-        dd($ddl);
+        dd($ddl);*/
+
+
 
     }
 
+    public function edit($id)
+    {
+        $member = Member::query()->find($id);
+
+        return view('admin.edit',compact('member'));
+
+    }
 
 
 

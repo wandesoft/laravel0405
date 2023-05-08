@@ -60,10 +60,12 @@ Route::redirect('order/1','home',302);
 
 Route::prefix('admin/member')->group(function (){
 
-    Route::get('/store','admin\memberController@store');
+    Route::post('/store','admin\memberController@store')->name('aaaaaa');;
     Route::get('/update','admin\memberController@update');
     Route::get('/index','admin\memberController@index');
-    Route::get('/destory','admin\memberController@destory');
+    Route::delete('/{id}','admin\memberController@destory');
+    Route::get('/{id}/edit','admin\memberController@edit');
+    Route::post('/update','admin\memberController@update');
 
 });
 
@@ -80,6 +82,7 @@ Route::prefix('admin/shop')->namespace('Admin')->group(function (){
 
 
 
+Route::get('admin/test/index','admin\testController@index');
 
 
 
